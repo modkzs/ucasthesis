@@ -1,45 +1,77 @@
-\chapter{引言}\label{chap:introduction}
+
+\chapter{引言}
+\label{chap:introduction}
 
 \section{研究背景}
+文本匹配是自然语言处理中最重要的基础问题之一。许多自然语言处理中的任务例如信息获取，问答系统，机器翻译，对话系统等等，都可以被视为文本匹配问题。根据使用场景的不同，文本匹配可以被分为三类：短文本-短文本匹配，短文本-长文本匹配以及长文本-长文本语义匹配。基于主题模型的语义匹配通常作为经典文本匹配技术的补充，而不是取代传统的文本匹配技术。
+\subsection{短文本-短文本匹配}
+短文本-短文本的语义匹配在工业界有着非常广泛的应用场景。例如，在网页搜索中，我们需要度量用户查询 (query) 和网页标题 (web page title) 的语义相关性；在知乎等问答网站需要进行相似问题的合并，这时我们需要度量一个问题和其他问题之间的相似度。这些场景都需要短文本-短文本的匹配作为基础。 由于主题模型在短文本上的效果不太理想，在短文本-短文本匹配任务中词向量的应用比主题模型更为普遍。简单的任务可以使用Word2Vec，GLoVE 等模型训练出来的词向量。
 
-考虑到许多同学可能缺乏\LaTeX{}使用经验，ucasthesis将\LaTeX{}的复杂性高度封装，开放出简单的接口，以便轻易使用。同时，对用\LaTeX{}撰写论文的一些主要难题，如制图、制表、文献索引等，进行了详细说明，并提供了相应的代码样本，理解了上述问题后，对于初学者而言，使用此模板撰写学位论文将不存在实质性的困难。所以，如果你是初学者，请不要直接放弃，因为同样为初学者的我，十分明白让\LaTeX{}简单易用的重要性，而这正是ucasthesis所追求和体现的。
+比如，在相似问题合并时，我们经常要计算两个问题的相似度，例如“推荐好看的电影”与“经典电影”。通过词向量进行简单处理（例如直接累加），可以得到这两个问题的向量表示。之后可以利用余弦相似度来计算两者的相似度。对于较难的短文本-短文本语义匹配任务，则可以考虑引入有监督信号并利用 Deep Structured Semantic Model(DSSM)\citep{Huang2013LearningDS} 或 Convolutional Latent Semantic Model(CLSM)\citep{Shen2014ALS} 这些更复杂的神经网络模型进行语义相关性的计算。
 
-此中国科学院大学学位论文模板ucasthesis基于中科院数学与系统科学研究院吴凌云研究员的CASthesis模板发展而来。当前ucasthesis模板满足最新的中国科学院大学学位论文撰写要求和封面设定。兼顾操作系统：Windows，Linux，MacOS 和\LaTeX{}编译引擎：pdflatex，xelatex，lualatex。支持中文书签、中文渲染、中文粗体显示、拷贝PDF中的文本到其他文本编辑器等特性。此外，对模板的文档结构进行了精心设计，撰写了编译脚本提高模板的易用性和使用效率。
+\subsection{短文本-长文本匹配}
+短文本-长文本语义匹配同样在在工业界被广泛运用。例如，在搜索引擎中，我们需要计算一个用户查询（query）和一个网页正文（content）的语义相关度。由于用户查询通常较短，而网页正文较长，因此查询与正文的匹配与上文提到的短文本-短文本不同，通常需要使用短文本-长文本语义匹配，以得到更好的匹配效果。在计算相似度的时候，我们规避对短文本直接进行主题映射，而是根据长文本的主题分布，计算该分布生成短文本的概率，作为它们之间的相似度。
 
-ucasthesis的目标在于简化学位论文的撰写，通过模板文档的默认规范设定，论文作者可以将精力集中在论文的内容上，而不需在版面设置上花费过多精力。 同时，ucasthesis的各命令有着扼要的注解和整洁一致的代码结构，对文档的仔细阅读可以为初学者提供一个学习\LaTeX{}的窗口。此外，整个模板的架构十分注重通用性，事实上，ucasthesis不仅是国科大学位论文模板，同时，通过少量修改便可成为使用\LaTeX{}撰写中英文文章或书籍的通用模板，并为使用者的个性化设定提供了接口和相应的代码。
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.40\textwidth]{short_long_query}
+    \bicaption{用户查询-广告相似度计算}{Text matching between user and advertise}
+    \label{fig:user-ad-match}
+\end{figure}
 
-\section{系统要求}\label{sec:system}
+\subsection{长文本-长文本匹配}
+通过使用主题模型，我们可以得到两个长文本的主题分布，再通过计算两个多项分布的距离来衡量它们之间的相似度。衡量多项分布的距离可以利用Hellinger Distance\citep{website:Hellinger}和Jensen-Shannon Divergence(JSD)\citep{website:Shannondivergence}
 
-\href{https://github.com/mohuangrui/ucasthesis}{\texttt{ucasthesis}} 宏包可以在目前主流的 \href{https://en.wikibooks.org/wiki/LaTeX/Introduction}{\LaTeX{}} 编译系统中使用，例如C\TeX{}套装 （请勿混淆C\TeX{}套装与ctex宏包。C\TeX{}套装是集成了许多\LaTeX{}组件的\LaTeX{}编译系统，因已停止维护，\textbf{不再建议使用}。 \href{https://ctan.org/pkg/ctex?lang=en}{ctex} 宏包如同ucasthesis，是\LaTeX{}命令集，其维护状态活跃，并被主流的\LaTeX{}编译系统默认集成，是几乎所有\LaTeX{}中文文档的核心架构。）、MiK\TeX{}（维护较不稳定，\textbf{不太推荐使用}）、\TeX{}Live。推荐的 \href{https://en.wikibooks.org/wiki/LaTeX/Installation}{\LaTeX{}编译系统} 和 \href{https://en.wikibooks.org/wiki/LaTeX/Installation}{\LaTeX{}文本编辑器} 为
-\begin{center}
-    %\footnotesize% fontsize
-    %\setlength{\tabcolsep}{4pt}% column separation
-    %\renewcommand{\arraystretch}{1.5}% row space 
-    \begin{tabular}{lcc}
-        \hline
-        %\multicolumn{num_of_cols_to_merge}{alignment}{contents} \\
-        %\cline{i-j}% partial hline from column i to column j
-        操作系统 & \LaTeX{}编译系统 & \LaTeX{}文本编辑器\\
-        \hline
-        Linux & \href{https://www.tug.org/texlive/acquire-netinstall.html}{\TeX{}Live Full} & \href{http://www.xm1math.net/texmaker/}{Texmaker}\\
-        MacOS & \href{https://www.tug.org/mactex/}{Mac\TeX{} Full} & \href{http://www.xm1math.net/texmaker/}{Texmaker}\\
-        Windows & \href{https://www.tug.org/texlive/acquire-netinstall.html}{\TeX{}Live Full} & \href{http://www.xm1math.net/texmaker/}{Texmaker}\\
-        \hline
-    \end{tabular}
-\end{center}
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.4\linewidth]{news_com}
+  \caption{新闻个性化推荐}{news recommadation}
+  \label{fig:news_recom}
+\end{figure}
 
-\LaTeX{}编译系统 (如\TeX{}Live) 用于提供编译环境，\LaTeX{}文本编辑器 (如Texmaker) 用于编辑\TeX{}源文件。请从各软件的官网下载安装程序，勿使用其它程序源。\textbf{\LaTeX{}编译系统和\LaTeX{}编辑器分别安装成功后，用户即完成了\LaTeX{}的系统配置}，无需其他手动干预和配置。若用户的系统原带有旧版的\LaTeX{}编译系统并想安装新版，请\textbf{先卸载干净旧版再安装新版}。
+文本匹配在工业界有着广泛的应用，网页搜索，相似问题合并等等都需要文本匹配作为基础。早期的文本匹配算法往往是对词向量空间如VSM，BM25等的匹配，主要解决基于词汇层面的匹配问题。但是这种算法有很大的局限性：
 
-\section{问题反馈}
+1. 语言多义性。相同的词语在不同语境下可能拥有不同的含义，如 “苹果” 既可以表示水果，也可以表示科技公司；而不同的词语也可以表达相同的语义，如 “出租车”，“的士”。
+2. 语言的组合结构。由相同词语组成的句子由于语序的不同，也可能产生不同的语义。例如 “机器学习” 和 “学习机器”。
+3. 匹配的非对称性问题。文本匹配任务并不一定要求语言相似，例如网页搜索中的查询和网页；也不一定要求语义上的相似，例如问答系统。
 
-关于\LaTeX{}的知识性问题，请查阅 \href{https://github.com/mohuangrui/ucasthesis/wiki}{ucasthesis和\LaTeX{}知识小站} 和 \href{https://en.wikibooks.org/wiki/LaTeX}{\LaTeX{} Wikibook}。
+因此从上世纪 90 年代开始，有人开始尝试将主题模型应用于文本匹配,主题模型可以较好地表示文本的语义信息，从而弥补传统文本匹配算法的不足。但是从效果上看，他们都无法替代基于词汇的匹配方法，只能作为补充。
+在世纪初，计算机的计算力和存储量开始爆炸式增长，因此开始有人尝试将深度学习应用于文本匹配算法上并且取得了较好的效果，
+目前大部分的深度学习算法都试图利用神经网络理解语义信息，但是现阶段计算机仍然难以理解语义信息，因此基于语义信息的文本匹配算法目前具有天然劣势。
 
-关于模板编译和样式设计的问题，请\textbf{先仔细阅读此说明文档，特别是“常见问题”（章节~\ref{sec:qa}）}。若问题仍无法得到解决，请\textbf{先将问题理解清楚并描述清楚，再将问题反馈}至 \href{https://github.com/mohuangrui/ucasthesis/issues}{Github/ucasthesis/issues}。
+\section{研究意义}
+文本匹配是自然语言处理的重要问题，在信息检索、广告计算等领域有着广泛的应用。由于传统的模式匹配方案模式规则难以维护、系统复杂，因此近几年来对文本匹配的研究集中于深度学习，即利用深度网络学习到文本的语义信息进行匹配。但是计算机对语义理解的困难为语义匹配的方案引入了额外的复杂度，算法工程师必须进行巧妙的特征设计以应对不同的业务场景。
 
-欢迎大家有效地反馈模板不足之处，一起不断改进模板。希望大家向同事积极推广\LaTeX{}，一起更高效地做科研。
+近几年来，深度网络极大的增强了强化学习表达能力，使得强化学习建模现实世界问题的能力越来越强。近年来，强化学习已经在文档排序，围棋等等方面发挥越来越重要的作用，而利用强化学习进行文本匹配的相关研究仍然是一片空白。这些领域的规则都远比文本匹配负责，因此利用强化学习学习传统文本匹配中的规则拥有强大的潜力。
 
-\section{模板下载}
+\section{本文贡献}
+文本匹配是传统的自然语言处理问题，传统的基于模式匹配的方案往往规则复杂，系统难以维护；现在基于深度学习的语义匹配拥有天生的缺陷。而深度强化学习由于其强大的建模能力开始在各个场合发挥越来越重要的作用，因此利用强化学习建模模式匹配，基于大量匹配数据学习匹配规则成为一种可能。本文分析了文本匹配场景下的文本数据特点以及传统文本匹配规则的基础上，提出了基于强化学习的文本匹配算法的解决方案。总体来说本文的贡献在于：
 
-\begin{center}
-    \href{https://github.com/mohuangrui/ucasthesis}{Github/ucasthesis}: \url{https://github.com/mohuangrui/ucasthesis}
-\end{center}
+(1)基于 value iteration 算法设计了文本匹配模型
+
+针对于文本匹配场景，本文设计了强化学习中的状态、动作以及奖励函数，并基于 value iteration 算法进行实现求解。通过这一方法，建模了文本匹配中的模式规则，并在 Quora 数据集上将该算法与 MatchPyramid、MatchSrnn 等经典文本匹配算法进行了对比。实验结果表示，基于 value iteration 的文本匹配算法在各个评价准则下均优于其他经典文本匹配算法的效果。
+
+(2)基于 AlphaGo Zero 算法设计了文本匹配模型
+
+基于 value iteration 的文本匹配模型虽然可以建模模式匹配中的规则，但是基于贪心的方法对于语言的组合结构问题有着天生的缺陷。 AlphaGo Zero 算法在设计上降低了局部最优解出现的可能性，因此本文基于 AlphaGo Zero 算法设计了文本匹配模型，并与基于value iteration 文本匹配模型以及其他经典算法进行了对比。实现结果表明，基于 AlphaGo Zero 的文本匹配模型具有显著的优势。
+
+(3)对文本匹配算法进行加速
+
+强化学习虽然拥有强大的建模能力，但是其算法本身的特点导致了它难以加速，且极难利用 GPU 进行并行计算。而 AlphaGo Zero 算法引入的蒙特卡洛树搜索则进一步增长了算法的运行时间。
+因此对强化学习算法进行加速以加快训练速度，降低推导延迟是必不可少的。本文基于蒙特卡洛树搜索的特点设计了并行算法，实现了 GPU 和 CPU 协作，大大增加了算法的运行速度
+
+\section{章节安排}
+本文共分为六章，每章节的内容组织如下：
+
+第一章为引言部分，主要介绍了基于强化学习的模式文本匹配算法的研究背景以及本文的主要贡献。在本章中，本文首先介绍了文本匹配算法的使用场景，接下来结合现有文本匹配算法的思想，阐述了基于语义的文本匹配算法所具有的缺陷，最后提出了可以利用强化学习建模模式匹配过程，最后介绍了本文的主要贡献。
+
+第二章从两个方面介绍了国内外的研究现状。第一方面是关于文本匹配的研究现状，主要介绍了基于单文档语义以及直接建模匹配的模型；另一方面是强化学习的研究现状，主要介绍了强化学习的基本概念，以及相关算法，为本文之后提出的模型打下基础。
+
+第三章介绍了根据文本匹配问题的特点，设计了强化学习中的 MDP 状态并进行了形式化的描述。根据所提出的 MDP 状态利用 value iteration 算法进行优化，并对实验结果进行分析。
+
+第四章针对于 value iteration 基于贪心的选择方法引入的问题，利用 AlphaGo Zero 框架对 MDP 状态进行优化求解，并根据 AlphaGo Zero 算法的特点对 MDP 状态进行了调整。
+
+第五章针对本文实现的算法进行了高效实现。针对于蒙特卡罗树搜索的特殊场景，设计了 CPU 与 GPU 协作的运行方式，通过流水线的方式对算法进行优化，这个大大加速了算法运行速度，为海量数据场景下的分布式训练带来的可能。
+
+第六章总结了本文的主要贡献与不足。
+
