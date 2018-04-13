@@ -150,7 +150,7 @@ v_{*}(s) & = E[R_{t+1} + \gamma v_*(S_{t+1})|S_t=s, A_t=a]\\
 \label{sec:TM_MDP}
 本节将文本匹配过程建模为一个强化学习过程。
 
-在模式文本匹配的过程中，我们可以将文本匹配的过程与编辑距离\citep{website:edit_dis}的计算过程类比。coffee 和 cafe 的编辑距离计算过程可以被表示为
+在模式文本匹配的过程中，我们可以将文本匹配的过程与编辑距离\cite{website:edit_dis}的计算过程类比。coffee 和 cafe 的编辑距离计算过程可以被表示为
 
 \begin{figure}[H]
     \centering
@@ -258,9 +258,11 @@ g_c(s) &= \text{LSTM}_c([{f(Q)}_{q_1}, {h(D)}_{d_1}], [{f(Q)}_{q_2}, {h(D)}_{d_2
 $$
 
 通过对 $g_c(s)$ 的加权和进行归一化得到最终的匹配概率
-$$
+\begin{equation}
+\label{eq:TM_classfiy}
 p = \sigma(<w, g_c(s)> + b)
-$$
+\end{equation}
+
 其中 $w$ 和 $b$ 都是需要学习的参数，$\sigma(x) = \frac{1}{1+e^{-x}}$
 LSTM 网络和 \ref{eq:LSTM} 类似, LSTM$_1$  和 LSTM$_2$ 共享参数。
 
@@ -314,6 +316,30 @@ $$
           \EndWhile
           \State $\Theta_{MDP} = \Theta_{MDP} - \eta \frac{\delta \ell}{\delta \Theta_{MDP}}$ \Comment{$\ell$ is defined in Eq~\ref{eq:MDP_model}}
         \EndWhile
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{推断过程}
+推断时，模型接收句子对 $Q, D$ 以及算法 \ref{alg:TM_train} 中得到的值函数 $V$ 作为输入，输出预测结果 $\{Y^{(n)}\}_{n=1}^N$。
+
+在推断时，利用算法\ref{alg:MDP_TM} 为样本$Q, D$生成一条路径
+
+$$\{[q_1, d_1], [q_2, d_2], \cdots, [q_t, d_t]\}$$
+
+并将生成的路径输入到路径判别模型中，利用公式~\ref{eq:TM_classfiy} 计算得到最终的匹配概率。
+
+\begin{algorithm}[!htbp]
+    \small
+    \caption{Inference Process of Text Match}\label{alg:TM_inf}
+    \renewcommand{\algorithmicrequire}{\textbf{Input:}}
+    \renewcommand{\algorithmicensure}{\textbf{Output:}}
+    \begin{algorithmic}
+        \Require sentence pair $D=\{ (\mathbf{Q}^{(n)}, \mathbf{D}^{(n)})\}_{n=1}^N$, value function $V$
+        \Ensure label $\mathbf{Y}$
+        \State $s \leftarrow [1,1]$
+        \State generate path according to Alg~\ref{alg:MDP_TM}
+        \State compute $Y$ by Eq.~\ref{eq:TM_classfiy}
+        \State \Return  $Y$
     \end{algorithmic}
 \end{algorithm}
 

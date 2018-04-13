@@ -1,11 +1,12 @@
 \chapter{基于蒙特卡罗树搜索的模式文本匹配}
-利用 value iteation 可以解决大部分文本匹配的问题，但是 value iteration 基于贪心的路径搜索难以解决语言的组合结构问题。对于词序的微小变化导致的语义差别， value iteration 往往难以识别。而且 value iteration 在小数据集下容易陷入局部最优而导致算法严重过拟合。而 AlphaGo 以及 AlphaGo Zero 通过引入蒙特卡罗搜索树很好地解决了路径搜索中的贪心导致的局部最优解问题。本章介绍了蒙特卡罗树搜索相关算法并提出了基于 AlphaGo Zero 的文本匹配算法。
+\label{chap:Zero}
+利用 value iteation 可以解决大部分文本匹配的问题，但是 value iteration 基于贪心的路径搜索难以解决语言的组合结构问题。对于词序的微小变化导致的语义差别， value iteration 往往难以识别。而且 value iteration 在小数据集下容易陷入局部最优而导致算法严重过拟合。而 AlphaGo 以及 AlphaGo Zero 通过引入蒙特卡罗搜索树很好地解决了路径搜索中的贪心导致的局部最优解问题。本章介绍了蒙特卡罗树搜索相关算法并提出了基于蒙特卡罗树搜索的文本匹配算法。
 
 \section{AlphaGo Zero 算法介绍}
 \subsection{蒙特卡罗树搜索介绍}\label{sec:MCTS_intro}
-蒙特卡罗树搜索\citep{Coulom2006EfficientSA} 在 2006 年被提出并在过去十多年中广泛用于各种游戏的人工智能\citep{Lorentz2008AmazonsDM, Enzenberger2010FuegoA,Buro2009ImprovingSE}。蒙特卡罗树搜索每次循环包含四步：
+蒙特卡罗树搜索\cite{Coulom2006EfficientSA} 在 2006 年被提出并在过去十多年中广泛用于各种游戏的人工智能\cite{Lorentz2008AmazonsDM, Enzenberger2010FuegoA,Buro2009ImprovingSE}。蒙特卡罗树搜索每次循环包含四步：
 
-1. 选择(selecion):从根节点 R 开始，依次选择最佳的子节点，直到达到叶节点。选择最佳子节点的难点主要在于为了探索解空间需要维持较高的探索次数和利用现有模拟结果以加快训练速度。第一次解决探索和利用平衡的方法被称为上限置信区间算法\citep{Kocsis2006BanditBM}(Upper Confidence Bound 1 applied to trees)，该方法基于 UCB1 \citep{Auer2002FinitetimeAO},建议在选择子节点时，以最大化 $\frac{w_i}{n_i} + c\sqrt{\frac{\ln N_i}{n_i}}$ 为目标。式中 $w_i$ 表示第 $i$ 次移动后的取胜次数；$n_i$ 表示第 $i$ 次移动后的仿真次数； $N_i$ 表示总仿真次数， $c$ 表示探索参数。
+1. 选择(selecion):从根节点 R 开始，依次选择最佳的子节点，直到达到叶节点。选择最佳子节点的难点主要在于为了探索解空间需要维持较高的探索次数和利用现有模拟结果以加快训练速度。第一次解决探索和利用平衡的方法被称为上限置信区间算法\cite{Kocsis2006BanditBM}(Upper Confidence Bound 1 applied to trees)，该方法基于 UCB1 \cite{Auer2002FinitetimeAO},建议在选择子节点时，以最大化 $\frac{w_i}{n_i} + c\sqrt{\frac{\ln N_i}{n_i}}$ 为目标。式中 $w_i$ 表示第 $i$ 次移动后的取胜次数；$n_i$ 表示第 $i$ 次移动后的仿真次数； $N_i$ 表示总仿真次数， $c$ 表示探索参数。
 
 2. 扩展(expansion): 如果游戏没有结束，那么扩展叶节点，将一个或多个可用节点添加为该叶节点的子节点，并选择其中的一个子节点作为节点 C 。
 
@@ -164,6 +165,7 @@ p_m = \frac{1}{1+e^{-{\mathbf{g}_c^{\text{out}}}}}
 \end{figure}
 
 \subsection{蒙特卡罗树搜索的训练和推断}
+\label{sec:MCTS_train}
 在\ref{sec:lab_value} 节，本文通过在大数据和小数据集上的训练结果发现单纯将策略函数的输出作为行动概率很容易陷入局部最优解，即使使用 $\epsilon$-贪心的方式也很难摆脱。受 AlphaGo 和 AlphaGo Zero 的启发，本节使用蒙特卡罗树搜索的方式进行前向式搜索。在 $t$ 时刻，算法在策略和价值网络的辅助下执行一次蒙特卡罗树搜索，得到搜索策略 $\mathbb{\pi}$，并根据 $\pi$ 确定下一个行动的位置。
 
 \begin{algorithm}[!htbp]
@@ -307,4 +309,8 @@ Alg~\ref{alg:TreeSearch} 展示了蒙特卡罗树搜索的细节，其中每一�
 为了对我们提出的基于蒙特卡罗树搜索的文本匹配算法有效性进行评估，我们利用 Quora 的问题匹配数据集进行了测试。
 
 \section{本章小结}
-本章主要介绍了基于蒙特卡罗树搜索的文本匹配算法。首先我们对上一章提出的 MDP 进行了改进，加入了历史信息。历史信息的出现使得
+本章主要介绍了基于蒙特卡罗树搜索的文本匹配算法。首先我们对上一章提出的 MDP 进行了改进，加入了路径信息。路径信息的引入使得价值网络的预测更加精确。
+
+为了解决直接使用价值网络输出的值函数会导致算法陷入局部最优解的问题，本章引入了蒙特卡罗树搜索算法，通过蒙特卡罗树搜索算法增强搜索策略的可用性，也解决了文本匹配中由于语言组合结构带来的语义区分问题。
+
+最后本文在quora数据集上进行了测试，实验结果表明本文提出的模型具有优异的性能。
