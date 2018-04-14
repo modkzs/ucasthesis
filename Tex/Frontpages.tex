@@ -9,7 +9,7 @@
 \title{基于强化学习的文本语义匹配}% \title[short title for headers]{Long title of thesis}
 \author{何逸轩}% name of author
 \advisor{徐君\hspace{1em}研究员}% supervisor
-\advisorsec{}% co-supervisor
+\advisorsec{中国科学院计算技术研究所}% co-supervisor
 \degree{硕士}% degree
 \degreetype{工学}% degree type
 \major{计算机软件与理论}% major
@@ -56,17 +56,17 @@
 
 (1) 如何设计文本匹配的策略和奖励机制
 
-(2) 如何解决传统模式匹配的固有难点、
+(2) 如何解决传统模式匹配的固有难点
 
 (3) 如何提升算法的训练和推导速度
 
 本文的主要工作是利用强化学习建模文本匹配并解决上面的挑战。
-首先，本文针对于文本匹配的场景设计了高效的策略和奖励机制，使得强化学习可以有效的解决文本匹配的问题；
+首先，本文利用马尔科夫决策过程对文本匹配进行建模，使得强化学习可以有效的解决文本匹配的问题；
 然后，本文对于传统的模式匹配难以解决的问题如词语顺序，对强化学习算法进行调整，使其可以有效解决这些问题；
-最后，针对强化学习运行速度慢、难以加速等问题，本文针对匹配场景进行了算法优化，大大提升了算法的运行速度。
+最后，针对强化学习运行速度慢、难以加速等问题，本文针对匹配场景进行了算法优化，提升了算法的运行速度。
 本文提出的模式文本匹配模型是一种高效的文本匹配算法。
 
-\keywords{文本匹配, 强化学习, AlphaGo Zero}
+\keywords{文本匹配, 强化学习, 马尔科夫决策过程，蒙特卡罗树搜索}
 %-
 %-> English abstract
 %-
@@ -86,11 +86,11 @@ In this paper, we found the main troubles in the pattern text matching based on 
 (3) how to speed up model training and inference
 
 In order to solve the problems addressed above, we introduced how to improve text matching performance by reinforcement learning:
-First, we introduced a effective policy and value function which make reinforcement learning can solve text matching problems efficiently
+First, we introduced a markov decision process which make reinforcement learning can solve text matching problems efficiently
 Second, in order to be solving some problems in traditional pattern matching such as word order more effectively, we adjusted the reinforcement learning algorithm.
 Last, we optimized our model to decrease running time in the matching situation.
 
 Our model is high-performance, real-time and has the ability to evolve.
 
-\englishkeywords{Text Matching, Reinforcement Learning, AlphaGo Zero}
+\englishkeywords{Text Matching, Reinforcement Learning, Markov Decision Process, Monte Carlo Tree Search}
 %---------------------------------------------------------------------------%
