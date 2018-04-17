@@ -2,7 +2,7 @@
 \label{chap:Zero}
 利用 value iteation 可以解决大部分文本匹配的问题，但是 value iteration 基于贪心的路径搜索难以解决语言的组合结构问题。对于词序的微小变化导致的语义差别， value iteration 往往难以识别。而且 value iteration 在小数据集下容易陷入局部最优而导致算法严重过拟合。而 AlphaGo 以及 AlphaGo Zero 通过引入蒙特卡罗搜索树很好地解决了路径搜索中的贪心导致的局部最优解问题。本章介绍了蒙特卡罗树搜索相关算法并提出了基于蒙特卡罗树搜索的文本匹配算法。
 
-\section{AlphaGo Zero 算法介绍}
+\section{蒙特卡罗树搜索增强的马尔科夫决策过程介绍}
 \subsection{蒙特卡罗树搜索介绍}\label{sec:MCTS_intro}
 蒙特卡罗树搜索\cite{Coulom2006EfficientSA} 在 2006 年被提出并在过去十多年中广泛用于各种游戏的人工智能\cite{Lorentz2008AmazonsDM, Enzenberger2010FuegoA,Buro2009ImprovingSE}。蒙特卡罗树搜索每次循环包含四步：
 
@@ -21,7 +21,7 @@
     \label{fig:MCTS}
 \end{figure}
 
-\subsection{AlphaGo}
+\subsection{围棋中的蒙特卡罗树搜索增强}
 \label{sec:AlphaGo}
 AlphaGo 算法中存在 3 个网络：使用监督学习训练的策略网络 $p_\sigma$ 以及该网络的简化版 $p_\pi$；使用强化学习训练的策略网络 $p_\rho$ 以及价值网络 $v_\theta$。在树搜索的过程中，$p_\sigma$ 被用作模拟人类棋手落子；$p_\rho$ 决定落子位置，$v_\theta$ 判断当前局势。
 
@@ -59,7 +59,6 @@ $$
 
 式中 $s_L^i$ 表示第 $i$ 次仿真的叶节点， $\mathbf{1}(s,a,i)$ 表示边 $(s,a)$ 是否被访问过。
 
-\subsection{AlphaGo Zero}
 AlphaGo Zero 是对 AlphaGo 的改进。相对于 AlphaGo，AlphaGo Zero 主要改进了以下几点：
 
 1. AlphaGo Zero 是一个自训练的强化学习过程，不需要任何人类的先验知识；
@@ -81,7 +80,14 @@ $$
 蒙特卡罗树搜索以及参数更新的相关部分参考 \ref{sec:AlphaGo} 节。
 
 \section{基于蒙特卡罗树搜索的文本匹配算法介绍}
-在上一章，本文对文本匹配算法的 MDP 进行了介绍，本节对基于蒙特卡罗树搜索的文本匹配算法进行介绍。
+在上一章，本文对文本匹配算法的 MDP 进行了介绍。受到 AlphaGo 和 AlphaGo Zero 的启发，本章尝试将蒙特卡罗树搜索方法应用于文本匹配中。我们将本章提出的方法称为 MM-Match。
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{grid}
+    \bicaption{MM-Match 算法结构}{The architecture of MM-Match}
+    \label{fig:MCTS_sum}
+\end{figure}
 
 \subsection{文本匹配 MDP 改进}
 本节主要介绍对 \ref{sec:TM_MDP} 节所提到的 MDP 过程的改进。算法的整体流程和 \ref{sec:TM_MDP} 节相比没有太大改进，仍然是先生成匹配路径之后基于生成的路径判断是否匹配。
@@ -253,7 +259,7 @@ Alg~\ref{alg:TreeSearch} 展示了蒙特卡罗树搜索的细节，其中每一�
 模型通过反向传播和离散梯度下降更新。
 
 \begin{algorithm}[!htbp]
-\caption{Train text matching model}\label{alg:Train}
+\caption{Train MM-Match}\label{alg:Train}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 \begin{algorithmic}[1]
@@ -286,7 +292,7 @@ Alg~\ref{alg:TreeSearch} 展示了蒙特卡罗树搜索的细节，其中每一�
 算法~\ref{alg:Train}展示了模型的推断过程。给定一个句子对 $\mathbf{Q}, \mathbf{D}$，系统的初始化状态 $s_1=[\{\mathbf{u}_1\}, \{\mathbf{v}_1\}, \{[\mathbf{u}_1,\mathbf{v}_1], \cdots, [\mathbf{u}_k, \mathbf{v}_k]$。在每个时间节点 $t$，主体都会得到系统的状态 $s_t=[\mathbf{Q}_t, \mathbf{D}_t, \mathbf{F}_t]$ 以及蒙特卡罗树搜索得到的策略 $\mathbb{\pi}$，根据 $\mathbb{\pi}$ 做出行动后更新当前状态得到 $s_{t+1}$。该过程不断持续直到到达匹配矩阵的右下角。
 
 \begin{algorithm}[!htbp]
-\caption{Text matching Inference}\label{alg:RLRank_MCTS}
+\caption{Text MM-Match}\label{alg:RLRank_MCTS}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 \begin{algorithmic}[1]
@@ -321,7 +327,7 @@ Alg~\ref{alg:TreeSearch} 展示了蒙特卡罗树搜索的细节，其中每一�
         \multicolumn{3}{c}{\multirow{1}{*}{Evaluation Criterion}} \\
         \cline{2-4} & acc & F1 & auc \\
         \hline
-        Matching MCTS & $\textbf{0.6776}(*)$ & $\textbf{0.6845}(*)$ & $\textbf{0.7371}(*)$ \\
+        MM-Match & $\textbf{0.6776}(*)$ & $\textbf{0.6845}(*)$ & $\textbf{0.7371}(*)$ \\
         \hline
         MatchPyramid & $0.6671$ & $0.6702$ & $0.7237$ \\
         \hline
@@ -330,7 +336,29 @@ Alg~\ref{alg:TreeSearch} 展示了蒙特卡罗树搜索的细节，其中每一�
     \end{tabular}
 \end{table}
 
-可以发现基于蒙特卡罗树搜索的文本匹配算法在3个评价指标上均大幅度领先于 MatchPyramid 和 MatchSRNN，说明我们的算法具有优异的性能。
+可以发现MM-Match在3个评价指标上均大幅度领先于 MatchPyramid 和 MatchSRNN。
+
+从收敛速度上来看，我们的算法继承了算法\ref{alg:TM_train} 的优点，收敛速度同样很快。类似的，我们也在上面实验中的一折数据上统计了验证集和测试集的auc随轮数的变化情况：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{MCTS_line}
+    \bicaption{MM-Match算法auc变化曲线}{Auc curve of MM-Match}
+    \label{fig:MCTS_line}
+\end{figure}
+
+观察图\ref{fig:MCTS_line} 可以发现，MM-Match 的收敛速度明显快于 VIM，算法在20轮不到就已经收敛。
+
+为了实际查看蒙特卡罗树搜索访问的节点，我们将算法 \ref{alg:TreeSearch} 访问节点数可视化：
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{MCTS_exp_path}
+    \bicaption{MM-Match树搜索节点访问次数}{Each node visit number in tree search of MM-Match}
+    \label{fig:MCTS_exp_path}
+\end{figure}
+
+图 \ref{fig:MCTS_exp_path} 是在输入的句子对为 How do I think positive in life? What is the best way to a positive life 的情况下第一次树搜索后各个节点的访问次数，可以发现右上角和左下角明显为空，而对角线处的访问次数明显最高。
 
 \section{本章小结}
 本章主要介绍了基于蒙特卡罗树搜索的文本匹配算法。首先我们对上一章提出的 MDP 进行了改进，加入了路径信息。路径信息的引入使得价值网络的预测更加精确。

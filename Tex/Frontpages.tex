@@ -44,27 +44,25 @@
 \setcounter{page}{1}% set page number
 \pagenumbering{Roman}% set large roman
 
-文本匹配是自然语言处理重要的基础问题之一，许多自然语言处理中的任务例如信息获取，问答系统，机器翻译，对话系统等等，都可以被视为文本匹配问题。
-在工业界，网页搜索，新闻推荐等等领域都需要文本匹配算法。
+随着计算机和互联网的飞速发展，互联网的信息量呈现爆炸式增长。信息量的增加既为人们的生活带来了便捷，也给人们提出了巨大的挑战。在海量的信息面前如何高效的获取信息以及如何去除冗余信息成了很多人需要面对的问题。文本匹配作为信息检索和冗余文本消除的基础技术手段，一直受到学术界和工业界的高度重视。同时许多自然语言处理中的任务例如信息获取，问答系统，机器翻译，对话系统等等，都可以被视为文本匹配问题。
 
 传统的文本匹配算法往往基于人工抽取的规则进行模式匹配，这导致规则复杂而且难以管理；因此目前对文本匹配的研究大都试图通过深度神经网络理解文本语义进行语义匹配。
-但是目前计算机仍然难以理解人类的语义，这种基于语义的匹配具有天然的劣势。
 
-强化学习的出现给基于模式的文本匹配带来了新的可能性。通过强化学习建模人工抽取的规则，可以解决传统的文本匹配算法的问题。
+近年来，深度学习的进展大大增强了强化学习的表达能力。强化学习已经在围棋，游戏等方面达到甚至超越人类的水准。这给基于文本语义匹配带来了新的可能性。利用强化学习强大的表达能力，我们可以较少的计算量下得到更好的效果。
 
 通过调研，本文发现利用强化学习进行文本匹配的主要难题在于:
 
-(1) 如何设计文本匹配的策略和奖励机制
+(1) 如何设计文本匹配的强化学习过程
 
-(2) 如何解决传统模式匹配的固有难点
+一个强化学习过程包括状态、动作、转移概率、奖励和策略。强化学习过程的设计会直接影响算法的效率和最终结果。针对于文本匹配场景，本文设计了强化学习中的状态、动作以及奖励函数，并基于值迭代 算法进行实现求解。通过这一方法，建模了文本匹配中的交互规则。本文设计的强化学习过程在大数据集场景下各个评价准则下均优于其他经典文本匹配算法的效果。
+
+(2) 如何避免模型陷入局部最优解
+
+基于值迭代的文本匹配模型虽然可以建模文本匹配中的交互规则，但是基于贪心的方法对于语言的组合结构问题有着天生的缺陷，同时在小数据集上需要精细的调参已达到最优效果。蒙特卡罗树搜索算法向前看$k$步的设计降低了局部最优解出现的可能性，因此本文基于蒙特卡罗树搜索算法设计了文本匹配模型，并与其他经典算法进行了对比。实现结果表明，基于蒙特卡罗树搜索的文本匹配模型具有显著的优势。
 
 (3) 如何提升算法的训练和推导速度
 
-本文的主要工作是利用强化学习建模文本匹配并解决上面的挑战。
-首先，本文利用马尔科夫决策过程对文本匹配进行建模，使得强化学习可以有效的解决文本匹配的问题；
-然后，本文对于传统的模式匹配难以解决的问题如词语顺序，对强化学习算法进行调整，使其可以有效解决这些问题；
-最后，针对强化学习运行速度慢、难以加速等问题，本文针对匹配场景进行了算法优化，提升了算法的运行速度。
-本文提出的模式文本匹配模型是一种高效的文本匹配算法。
+强化学习虽然拥有强大的建模能力，但是其算法本身的特点导致了它难以加速，且极难利用 GPU 进行并行计算。而蒙特卡洛树搜索本身的特点则进一步增长了算法的运行时间。因此对强化学习算法进行加速以加快训练速度，降低推导延迟是必不可少的。本文结合蒙特卡洛树搜索以及文本匹配的特点设计了文本匹配算法，在多线程环境下取得了较好的效果。
 
 \keywords{文本匹配, 强化学习, 马尔科夫决策过程，蒙特卡罗树搜索}
 %-
@@ -73,24 +71,25 @@
 \chapter*{Abstract}
 \chaptermark{Abstract}
 
-Text matching is one of the most important problems in nature language processing, many tasks like information retrive, question answer, machine translation and dialogue can be formalized as text matching.
-Text matching plays a key role in web searching and news recommadation.
-Traditional text matching research is often based on manually extracted rules for pattern matching, which leads to complex rules and difficult management. So currently almost all search concentrates on semantic match based on deep learning. But it is still very hard to make machine understand semantics, so this kind of methods have intrinsic weakness.
+With the development of computer science and Internet, the amount of information is growing rapidly. The increase of information brings us convenience as well as difficulties. How to obtain information efficiently and remove redundant one among the massive information have become a problem that many people have to face. Text matching, as a basic technology for information retrieval and redundant text elimination, is widely used in the academic community and industry. At the same time, many tasks in natural language processing such as information retrieval, question answering systems, machine translation, dialogue systems, etc., can be considered as text matching problems.
 
-In this paper, we found the main troubles in the pattern text matching based on reinforcement learning are:
+Traditional text matching algorithms are based on handcraft rules for pattern matching, which leads to complex rules and difficult management. It can’t satisfy users’ information inquiry day by day. Therefore, currently, the researches on text matching mostly concentrate on understanding text semantics by deep neural networks for semantic matching.
 
-(1) how to design reward and policy function for text matching
+Recently, reinforcement learning enhanced by deep learning methods has a stronger express ability. Reinforcement learning has reached or surpassed the level of humanity in terms of go, games and so on. This brings new possibilities to semantics-based text matching. We can get better result with less calculation amount by strong exporess ability of reinforcement learning.
 
-(2) how to solve intrinsic problems in traditional text matching
+In this paper, we found the main issues in the text matching based on reinforcement learning are:
+
+(1) how to design reinforcement learning process for text matching
+
+A reinforcement learning process includes states, actions, transition probabilities, rewards, and policies. The design of the reinforcement learning algorithm directly affects the efficiency of the algorithm. This paper proposes a new reinforcement learning method with well-designed states, actions and reward function to tackle text matching problem, and implements solution based on value iterative algorithms. This method models the interaction rules on text matching. The reinforcement learning algorithm designed in this paper is superior to other classic text matching methods under the various evaluation criteria in large data set scenarios.
+
+(2) How to avoid local optimal solution
+
+Text-matching model based on value iteration can model the interaction rules in text matching, but the greedy method has a natural defect in the problem of the combinatorial structure of the language. At the same time, fine tuning parameters on the small data set is needed to reached the optimal effect. The lookahead Monte Carlo Tree Search algorithm to reduce the possibility of local optimal solutions. Therefore, this paper proposes a text matching model based on the Monte Carlo Tree Search algorithm and compares it with other classical algorithms. The results show that the text matching model based on Monte Carlo search outperforms others.
 
 (3) how to speed up model training and inference
 
-In order to solve the problems addressed above, we introduced how to improve text matching performance by reinforcement learning:
-First, we introduced a markov decision process which make reinforcement learning can solve text matching problems efficiently
-Second, in order to be solving some problems in traditional pattern matching such as word order more effectively, we adjusted the reinforcement learning algorithm.
-Last, we optimized our model to decrease running time in the matching situation.
-
-Our model is high-performance, real-time and has the ability to evolve.
+Although reinforcement learning has powerful modeling capabilities, the algorithm is difficult to speed up and to parallel compute with GPU. Monte Carlo Tree Search itself further increase the running time of the algorithm. Therefore, it is necessary to speed up the training process and reduce the inference delay. In this paper, a parallel design is proposed based on the features of Monte Carlo Tree Search and text matching, which has achieved good results in multi-threaded environment.
 
 \englishkeywords{Text Matching, Reinforcement Learning, Markov Decision Process, Monte Carlo Tree Search}
 %---------------------------------------------------------------------------%

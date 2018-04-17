@@ -1,4 +1,4 @@
-\chapter{基于马尔科夫过程的模式文本匹配}
+\chapter{面向模式文本匹配的马尔科夫决策过程}
 
 由于文本匹配的适用领域较为广泛，因此在各大互联网公司得到了大量的应用，创造了巨大的商业价值。基于强化学习的文本匹配可以较好的建模模式匹配中的规则。本文介绍了强化学习的主要技术，并且提出了模式文本匹配的算法设计。
 
@@ -167,26 +167,41 @@ stick but what is the error message you are receiving. 得到的匹配矩阵进�
 \begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.40\textwidth]{match_MDP}
-    \bicaption{模式文本匹配计算过程}{Pattern Text Matching}
+    \bicaption{文本匹配路径计算过程}{Pattern Text Matching}
     \label{fig:match_MDP}
 \end{figure}
 
 和 MatchPyramid 以及 MatchSRNN 类似，我们同样会使用匹配矩阵的概念。我们从匹配矩阵的右上角出发，根据当前位置确定行走方向，直到走到左下角为止。这样情况下我们会得到一条匹配路径。我们需要建立一个判别模型，根据匹配路径判断是否匹配。
 
-首先描述文本匹配算法中获得匹配路径的过程，该过程为一个马尔科夫决策过程。
+首先描述文本匹配算法中获得匹配路径的过程，该过程为一个马尔科夫决策过程。其输入为一个句子对 $Q=\{\mathbf{u}_1, \mathbf{u}_2,\cdots,\mathbf{u}_n\}, D=\{\mathbf{v}_1, \mathbf{v}_2,\cdots,\mathbf{v}_m\}$
 
-我们将文本匹配的状态表示为在匹配矩阵中的位置 $s_t = [q_{t}, d_{t}]$，其中 $q_{t}, d_{t}$ 分别表示$t$时刻在第1，2个句子中的位置。
-和编辑距离类似，文本匹配的过程中也有3种行为：向下走，向右走和向右下方走。
-在$t$时刻，我们根据系统的状态 $s_t$ 得到当前的观测 $o_t = Q [q_{t}:k+q_{t}], D [d_{t}:k+d_{t}]$，即从当前位置开始，将两个句子的前 $k$ 个单词作为输入，并通过值函数获得每个行动的值。式中 $Q, D$ 分别表示2个句子。
+1. 状态 $\mathcal{S}$：我们将在 $t$ 时刻的状态 $s_t$ 定义为从当前位置开始向前看的 $m$ 个单词：
+$$
+\begin{aligned}
+s_t &= \{[\mathbf{u}_{q_t}, \mathbf{v}_{d_t}], [\mathbf{u}_{1+q_t},\mathbf{v}_{1+d_t}] \cdots, [\mathbf{u}_{m+q_t}, \mathbf{v}_{m+d_t}]\}
+\end{aligned}
+$$
+式中 $q_t$ 和 $d_t$ 表示当前位置。
 
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=0.80\textwidth]{match_value_function}
-    \bicaption{文本匹配值函数输入}{value function input of text matching}
-    \label{fig:value_function_input}
-\end{figure}
+2. 动作$\mathcal{A}$：在每个时间 $t$，我们都可以选择向下，向右或者像右下方行走。
 
-值函数以两个句子当前位置的前 $m$ 个单词作为输入，确定当前句子是否可以正确判别。
+3. 状态转移函数$\mathcal{T}(S,\mathcal{A})$：状态转移函数 $\mathcal{T}:S\times \mathcal{A}\rightarrow S$ 被定义为：
+$$
+(q_{t+1}, d_{t+1}) =
+\begin{cases}
+(q_{t} + 1, d_{t}) &\text{if goes down} \\
+(q_{t}, d_{t} + 1) &\text{if goes right}  \\
+(q_{t} + 1, d_{t} + 1) &\text{if goes obliquely}
+\end{cases} \\
+$$
+$$
+\begin{aligned}
+s_{t+1} &= \mathcal{T}(s_t, a_t) = [\mathbf{u}_{q_{t+1}}, \mathbf{v}_{d_{t+1}}], [\mathbf{u}_{1+q_{t+1}},\mathbf{v}_{1+d_{t+1}}] \cdots, [\mathbf{u}_{m+q_{t+1}}, \mathbf{v}_{m+d_{t+1}}]
+\end{aligned}
+$$
+在每个时间 $t$：系统根据当前的状态选择一个行动(移动方向)，并根据方向移动到下一个位置，状态随之转移：根据当前的位置 $(q_{t+1}, d_{t+1}) $更新未来单词序列。完成转移后，再根据当前状态继续移动。
+
+4.值函数 $V$：值函数 $V: S\rightarrow \mathbb{R}$ 是对当前模型是否可以得到正确预测结果的预测。值函数需要不断更新以更加准确的得到预测结果。本节所提出的值函数目的是预测模型是否可以预测成功，即 $\mathbf{1}_{t=y}$，其中 $t$ 为预测的 label， $y$ 为实际label。 值函数以两个句子当前位置的前 $m$ 个单词作为输入，确定当前句子是否可以正确判别。
 我们利用一个 LSTM 网络处理输入的序列，通过对 LSTM 网络输出的加权和进行线性变换得到值函数：
 $$
 V(s) = \sigma(<w, g(s)>, b_v)
@@ -211,19 +226,14 @@ h_k &= o_k \circ \text{tanh}(c_k)
 \end{aligned}
 \end{equation}
 
-图 \ref{fig:value_function_input} 以 $Q=\{\text{The cat sat on the mat}\},D=\{\text{The dog played balls on the floor}\}, m=3$ 为例展示了值函数。当前的状态 $s=[2, 2]$ ，我们将 $Q[2:5]=\{\text{sat, on, the}\}, D[2:5]=\{\text{played, balls, on}\}$ 的词向量作为 LSTM 的输入，利用 LSTM 捕捉未来词汇的序列信息，计算每个行为的值。
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.80\textwidth]{match_value_function}
+    \bicaption{文本匹配值函数输入}{value function input of text matching}
+    \label{fig:value_function_input}
+\end{figure}
 
-环境的状态转移都是确定性的，即
-\begin{equation}
-\label{eq:status_transfer}
-S_{t+1} =
-\begin{cases}
-[q_{t} + 1, d_{t}], & \quad{\rm walk\,down} \\
-[q_{t}, d_{t} + 1], & \quad{\rm walk\,right} \\
-[q_{t} + 1, d_{t}+1], & \quad{\rm walk\,lower\,right}
-\end{cases}
-\end{equation}
-环境的奖励为模型是否可以预测成功，即 $\mathbf{1}_{t=y}$，其中 $t$ 为预测的 label， $y$ 为实际label。
+图 \ref{fig:value_function_input} 以 $Q=\{\text{The cat sat on the mat}\},D=\{\text{The dog played balls on the floor}\}, m=3$ 为例展示了值函数。当前的状态 $s=[2, 2]$ ，我们将 $Q[2:5]=\{\text{sat, on, the}\}, D[2:5]=\{\text{played, balls, on}\}$ 的词向量作为 LSTM 的输入，利用 LSTM 捕捉未来词汇的序列信息，计算每个行为的值。
 
 获得匹配路径的算法可以被表示为：
 \begin{algorithm}[!htbp]
@@ -244,7 +254,7 @@ S_{t+1} =
     \end{algorithmic}
 \end{algorithm}
 
-在计算路径时，算法从初始状态 $s_1 = [Q[1:m], D[1:m]]$ 出发，每次将当前位置的前 $k$ 个词作为输入，得到每个行动的值，选择值最大的行动作为当前的行动，并根据当前的行为移动到下一个位置，直到到达矩阵的右下角。一直选择值最大的行动可能会导致算法陷入局部最优解，因此可以采用 $\epsilon$-贪心的方法控制探索和利用的程度。
+在计算路径时，算法从初始状态 $s_1 = [Q[1:m], D[1:m]]$ 出发，每次将当前位置的前 $m$ 个词作为输入，得到每个行动的值，选择值最大的行动作为当前的行动，并根据当前的行为移动到下一个位置，直到到达矩阵的右下角。一直选择值最大的行动可能会导致算法陷入局部最优解，因此可以采用 $\epsilon$-贪心的方法控制探索和利用的程度。
 
 \subsection{匹配路径的判别}
 \label{sec:path_classify}
@@ -277,7 +287,7 @@ LSTM 网络和 \ref{eq:LSTM} 类似, LSTM$_1$  和 LSTM$_2$ 共享参数。
 \end{figure}
 
 \section{文本匹配 MDP 的训练与预测}
-上节引入了文本匹配的 MDP，本节主要介绍文本匹配的MDP的训练与预测过程。
+上节引入了文本匹配的 MDP，本节主要介绍文本匹配的MDP的训练与预测过程。我们利用值函数法进行文本匹配 MDP 的训练与预测，将我们的方法称为VIM(value iteration match)。
 \subsection{训练过程}
 训练时我们使用算法 \ref{alg:value_iteration} 进行优化。模型的参数包含 MDP 过程的参数 $\Theta_{MDP}$ 以及判别模型的参数 $\Theta_{c}$，在训练时，模型接受数据集 $D=\{Q^{(n)}, D^{(n)}, Y^{(n)}\}_{n=1}^N$ 作为输入，输出参数 $\Theta_{MDP}$ 以及 $\Theta_{c}$.
 
@@ -305,7 +315,7 @@ $$
 
 \begin{algorithm}[!htbp]
     \small
-    \caption{Train Process of Text Match}\label{alg:TM_train}
+    \caption{Train Process of VIM}\label{alg:TM_train}
     \renewcommand{\algorithmicrequire}{\textbf{Input:}}
     \renewcommand{\algorithmicensure}{\textbf{Output:}}
     \begin{algorithmic}
@@ -323,7 +333,7 @@ $$
 \end{algorithm}
 
 \subsection{推断过程}
-推断时，模型接收句子对 $Q, D$ 以及算法 \ref{alg:TM_train} 中得到的值函数 $V$ 作为输入，输出预测结果 $\{Y^{(n)}\}_{n=1}^N$。
+推断时，模型接收句子对 $Q, D$ 以及算法 \ref{alg:TM_train} 中得到的值函数 $V$ 作为输入，输出预测结果 $Y$。
 
 在推断时，利用算法\ref{alg:MDP_TM} 为样本$Q, D$生成一条路径
 
@@ -333,7 +343,7 @@ $$\{[q_1, d_1], [q_2, d_2], \cdots, [q_t, d_t]\}$$
 
 \begin{algorithm}[!htbp]
     \small
-    \caption{Inference Process of Text Match}\label{alg:TM_inf}
+    \caption{Inference Process of VIM}\label{alg:TM_inf}
     \renewcommand{\algorithmicrequire}{\textbf{Input:}}
     \renewcommand{\algorithmicensure}{\textbf{Output:}}
     \begin{algorithmic}
@@ -391,14 +401,14 @@ $$\{[q_1, d_1], [q_2, d_2], \cdots, [q_t, d_t]\}$$
         \multicolumn{3}{c}{\multirow{1}{*}{Evaluation Criterion}} \\
         \cline{2-4} & acc & F1 & auc \\
         \hline
-        Matching MDP & $\textbf{0.7222}(*)$ & $0.7217$ & $\textbf{0.7979}(*)$ \\
+        VIM & $\textbf{0.7222}(*)$ & $0.7217$ & $\textbf{0.7979}(*)$ \\
         MatchPyramid & $0.7130$ & $\textbf{0.7220}(*)$ & $0.7853$ \\
         MatchSRNN & $0.7105$ & $0.7201$ & $0.7848$\\
         \hline
     \end{tabular}
 \end{table}
 
-可以发现 Matching MDP 的方法在 acc 和 auc 上均显著优于 MatchPyramid 和 MatchSRNN， 在 F1 上三者相差并不大。
+可以发现 VIM 在 acc 和 auc 上均显著优于 MatchPyramid 和 MatchSRNN， 在 F1 上三者相差并不大。
 
 根据在 QuoraQP 上的测试结果来看，使用值迭代的方式训练马尔科夫决策过程的收敛速度很快，图\ref{fig:value_iter_line}为我们的算法在上面试验中某一折数据的准确率变化曲线，蓝色曲线为测试集的准确率，黄色曲线为验证集的准确率。可以发现我们的算法收敛速度很快，在第50轮左右就可以做到收敛。
 
@@ -409,7 +419,7 @@ $$\{[q_1, d_1], [q_2, d_2], \cdots, [q_t, d_t]\}$$
     \label{fig:value_iter_line}
 \end{figure}
 
-为了测试向前看的单词个数$k$对于算法性能的影响，我们对向前看 2，3，4，5 个单词分别进行了实验。实验结果如下：
+为了测试向前看的单词个数$m$对于算法性能的影响，我们对向前看 2，3，4，5 个单词分别进行了实验。实验结果如下：
 
 \begin{table}[!htbp]
     \bicaption{向前看的单词数量对算法性能影响}{The influence of looking forward words count to our algrithm}
@@ -432,7 +442,7 @@ $$\{[q_1, d_1], [q_2, d_2], \cdots, [q_t, d_t]\}$$
     \end{tabular}
 \end{table}
 
-可以发现 $k=3$ 时算法的表现最优。这是因为一般情况下来说，语言的组合结构问题构成的词语个数都是有限的，一般都在3，4个左右。在 $k=2$ 时，无法覆盖大部分的次序颠倒的场景；在 $k$大于3时，算法的各项指标都开始逐渐下滑。这可能是因为在 $k$ 过大后，截取到的句子长度远大于次序颠倒部分的长度，使得神经网络捕捉到的信息中更多的包含了序列信息，次序颠倒信息的比重下降。
+可以发现 $m=3$ 时算法的表现最优。这是因为一般情况下来说，语言的组合结构问题构成的词语个数都是有限的，一般都在3，4个左右。在 $m=2$ 时，无法覆盖大部分的次序颠倒的场景；在 $m$大于3时，算法的各项指标都开始逐渐下滑。这可能是因为在 $m$ 过大后，截取到的句子长度远大于次序颠倒部分的长度，使得神经网络捕捉到的信息中更多的包含了序列信息，次序颠倒信息的比重下降。
 
 \begin{figure}[H]
     \centering
@@ -443,10 +453,10 @@ $$\{[q_1, d_1], [q_2, d_2], \cdots, [q_t, d_t]\}$$
 
 图\ref{fig:val_iter_path} 展示了在输入样本为 $Q$=What are some examples of acidic substances?，$D$=What are some examples of substances soluble in water? 值迭代的生成路径。由于每个方向的值都可以由其左边、上边、和左上的方块得到，因此我们在画图时将3个值取平均作为这个方块的值。从图中我们可以明显发现，右下角为颜色最浓的部分，右上和左下的颜色相对来说都要淡很多。
 
-但是由于 value iteration 基于贪心的策略导致算法很容易陷入过拟合，因此我们在Quora数据集上选取了10240个句子对进行测试。测试方法同样采用五折交叉验证：
+但是由于值迭代基于贪心的策略导致算法很容易陷入过拟合，为了测试VIM算法的小数据集上的效果，我们在Quora数据集上选取了10240个句子对进行测试。测试方法同样采用五折交叉验证：
 
 \begin{table}[H]
-    \bicaption{文本匹配算法在 Quora 小数据集上的测试结果}{The result of text matching algorithm on small Quora dataset}
+    \bicaption{VIM算法在 Quora 小数据集上的测试结果}{The result of VIM algorithm on small Quora dataset}
     \label{tab:MDP_small_test}
     \centering
     \footnotesize% fontsize
@@ -458,9 +468,9 @@ $$\{[q_1, d_1], [q_2, d_2], \cdots, [q_t, d_t]\}$$
         \multicolumn{3}{c}{\multirow{1}{*}{Evaluation Criterion}} \\
         \cline{2-4} & acc & F1 & auc \\
         \hline
-        Matching MDP with $\epsilon$ = 0 & $0.6465$ & $0.6644$ & $0.7056$ \\
-        Matching MDP with $\epsilon$ = 0.1 & $0.6519$ & $\textbf{0.6772}(*)$ & $0.7080$ \\
-        Matching MDP with changed $\epsilon$ & $0.6532$ & $0.6612$ & $0.7147$ \\
+        VIM with $\epsilon$ = 0 & $0.6465$ & $0.6644$ & $0.7056$ \\
+        VIM with $\epsilon$ = 0.1 & $0.6519$ & $\textbf{0.6772}(*)$ & $0.7080$ \\
+        VIM with changed $\epsilon$ & $0.6532$ & $0.6612$ & $0.7147$ \\
         \hline
         MatchPyramid & $\textbf{0.6671}(*)$ & $0.6702$ & $0.7237$ \\
         \hline
@@ -469,7 +479,7 @@ $$\{[q_1, d_1], [q_2, d_2], \cdots, [q_t, d_t]\}$$
     \end{tabular}
 \end{table}
 
-从表格 \ref{tab:MDP_small_test} 可以发现，在小数据集下 Matching MDP 算法出现了明显的过拟合，人工调节的 $\epsilon$ 可以小幅度提高算法的效果，但是仍然无法超过 MatchPyramid 和 MatchSRNN。
+从表格 \ref{tab:MDP_small_test} 可以发现，在小数据集下 VIM 算法出现了明显的过拟合，人工调节的 $\epsilon$ 可以小幅度提高算法的效果，但是仍然无法超过 MatchPyramid 和 MatchSRNN。
 
 \section{本章小结}
 本章主要介绍了文本匹配的马尔科夫决策过程。首先介绍了马尔科夫决策过程的背景，包括马尔科夫链以及马尔科夫决策过程的训练和推断，并且根据文本匹配的场景对文本匹配的MDP进行了形式化描述，并利用值迭代的方法进行训练和推断。该模型在大数据量的情况下表现优异，但是由于值迭代算法的缺陷，在小数据场景下表现不佳。在后续章节中，本文将针对该问题进行改进。
