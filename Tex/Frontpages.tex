@@ -20,7 +20,7 @@
 %-
 \englishtitle{The Text Semantic Matching based on\\ Reinforcement Learning}
 \englishauthor{He Yixuan}
-\englishadvisor{Xu Jun}
+\englishadvisor{Thesis Supervisor: Professor Xu Jun}
 \englishdegree{Master}% degree type <Doctor|Master> of <Philosophy|Natural Science|Engineering>
 \englishdegreetype{Science}
 \englishthesistype{thesis}% thesis type <thesis|dissertation>
@@ -85,11 +85,11 @@ A reinforcement learning process includes states, actions, transition probabilit
 
 (2) How to avoid local optimal solution
 
-Text-matching model based on value iteration can model the interaction rules in text matching, but the greedy method has a natural defect in the problem of the combinatorial structure of the language. At the same time, fine tuning parameters on the small data set is needed to reached the optimal effect. The lookahead Monte Carlo Tree Search algorithm to reduce the possibility of local optimal solutions. Therefore, this paper proposes a text matching model based on the Monte Carlo Tree Search algorithm and compares it with other classical algorithms. The results show that the text matching model based on Monte Carlo search outperforms others.
+Text-matching model based on value iteration can model the interaction rules in text matching, but the greedy method has a natural defect in the problem of the combinatorial structure of the language. At the same time, fine tuning parameters on the small data set is needed to reached the optimal effect. The lookahead Monte Carlo Tree Search algorithm reduce the possibility of local optimal solutions. Therefore, this paper proposes a text matching model based on the Monte Carlo Tree Search algorithm and compares it with other classical algorithms. The results show that the text matching model based on Monte Carlo search outperforms others.
 
 (3) how to speed up model training and inference
 
-Although reinforcement learning has powerful modeling capabilities, the algorithm is difficult to speed up and to parallel compute with GPU. Monte Carlo Tree Search itself further increase the running time of the algorithm. Therefore, it is necessary to speed up the training process and reduce the inference delay. In this paper, a parallel design is proposed based on the features of Monte Carlo Tree Search and text matching, which has achieved good results in multi-threaded environment.
+Although reinforcement learning has powerful modeling capabilities, the algorithm is difficult to speed up and to parallel compute with GPU. Monte Carlo Tree Search further increase the running time of the algorithm. Therefore, it is necessary to speed up the training process and reduce the inference delay. In this paper, a parallel design is proposed based on the features of Monte Carlo Tree Search and text matching, which has achieved good results in multi-threaded environment.
 
 \englishkeywords{Text Matching, Reinforcement Learning, Markov Decision Process, Monte Carlo Tree Search}
 %---------------------------------------------------------------------------%

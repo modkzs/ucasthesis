@@ -21,7 +21,7 @@
     \label{fig:MCTS}
 \end{figure}
 
-\subsection{围棋中的蒙特卡罗树搜索增强}
+\subsection{围棋中的蒙特卡罗树搜索应用}
 \label{sec:AlphaGo}
 AlphaGo 算法中存在 3 个网络：使用监督学习训练的策略网络 $p_\sigma$ 以及该网络的简化版 $p_\pi$；使用强化学习训练的策略网络 $p_\rho$ 以及价值网络 $v_\theta$。在树搜索的过程中，$p_\sigma$ 被用作模拟人类棋手落子；$p_\rho$ 决定落子位置，$v_\theta$ 判断当前局势。
 
